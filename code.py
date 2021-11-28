@@ -1,5 +1,6 @@
 import board
 import busio
+import time
 from digitalio import DigitalInOut
 
 from adafruit_esp32spi import adafruit_esp32spi
@@ -75,4 +76,12 @@ while True:
     print("Start connecting to MQTT broker...")
     mqtt_client.connect()
     
-    mqtt_client.loop()
+    killed = False
+    while not killed:
+        try:
+            mqtt_client.loop()
+        except Exception:
+            killed = True
+            continue
+        
+        time.sleep(1)
