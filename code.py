@@ -24,6 +24,10 @@ humidity_feed = "weather/aucubin/humidity"
 tvoc_feed = "weather/aucubin/tvoc"
 eco2_feed = "weather/aucubin/eco2"
 
+# Display
+epd = epd2in9.EPD()
+epd.init()
+
 # MQTT Callback functions
 def connected(client, userdata, flags, rc):
     print("Connected to MQTT Broker. Subscribing to topics.")
@@ -36,7 +40,10 @@ def disconnected(client, userdata, rc):
     print("Disconnected from MQTT Broker.")
     
 def message(client, topic, message):
-    print("New Message on topic {0}: {1}".format(topic, message))
+    data = "{0} - {1}".format(topic, message)
+    print("New Message from MQTT: {0}".format(data))
+    #epd.framebuf.text(message, 10, 10, True)
+    #epd.display_frame_buf(epd.buffer)
 
 spi = busio.SPI(esp32_sck, esp32_mosi, esp32_miso)
 esp = adafruit_esp32spi.ESP_SPIcontrol(spi, esp32_cs, esp32_ready, esp32_reset)
@@ -78,10 +85,6 @@ while True:
     print("Start connecting to MQTT broker...")
     mqtt_client.connect()
     
-    print("Connecting to display...")
-    epd = epd2in9.EPD()
-    print("Initializing display...")
-    epd.init()
     print("Clear display...")
     epd.clear_frame_memory()
     epd.display_frame()

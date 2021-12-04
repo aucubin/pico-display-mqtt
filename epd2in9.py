@@ -30,6 +30,8 @@ import time
 
 import epdif
 
+import adafruit_framebuf
+
 # EPD2IN9 commands
 DRIVER_OUTPUT_CONTROL                       = 0x01
 BOOSTER_SOFT_START_CONTROL                  = 0x0C
@@ -64,6 +66,8 @@ class EPD:
         self.dc_pin = None
         self.busy_pin = None
         self.lut = self.lut_full_update
+        self.buffer = bytearray(self.fb_bytes)
+        self.framebuf = adafruit_framebuf.FrameBuffer(self.buffer, self.width, self.height)
 
     # TODO convert to raw bytes literals to save space / mem / import time
     lut_full_update = bytes((
