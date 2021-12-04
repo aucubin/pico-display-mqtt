@@ -8,6 +8,8 @@ import adafruit_esp32spi.adafruit_esp32spi_socket as socket
 
 import adafruit_minimqtt.adafruit_minimqtt as MQTT
 
+import epd2in9
+
 # Pins
 esp32_cs = DigitalInOut(board.GP5)
 esp32_ready = DigitalInOut(board.GP20)
@@ -76,6 +78,15 @@ while True:
     print("Start connecting to MQTT broker...")
     mqtt_client.connect()
     
+    print("Connecting to display...")
+    epd = epd2in9.EPD()
+    print("Initializing display...")
+    epd.init()
+    print("Clear display...")
+    epd.clear_frame_memory()
+    epd.display_frame()
+    
+    print("Start MQTT loop...")
     killed = False
     while not killed:
         try:
@@ -85,3 +96,4 @@ while True:
             continue
         
         time.sleep(1)
+        
