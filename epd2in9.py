@@ -227,6 +227,10 @@ class EPD:
         for i in range(0, self.height * int(self.width/8)):
             self._send_data(pattern)
 
+    def clear_framebuffer(self):
+        for i, _ in enumerate(self.buffer):
+            self.buffer[i] = 0
+
 ##
  #  @brief: update the display
  #          there are 2 memory areas embedded in the e-paper display

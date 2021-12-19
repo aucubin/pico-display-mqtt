@@ -72,6 +72,7 @@ def message(client, topic, message):
     
 def set_display():
     print("Updating display")
+    epd.clear_framebuffer()
     epd.framebuf.text(temp_const, 10, 10, True)
     epd.framebuf.text(mqtt_values[temp_const], 90, 10, True)
     epd.framebuf.text(humidity_const, 10, 30, True)
