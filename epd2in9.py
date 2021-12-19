@@ -44,6 +44,7 @@ MASTER_ACTIVATION                           = 0x20
 DISPLAY_UPDATE_CONTROL_1                    = 0x21
 DISPLAY_UPDATE_CONTROL_2                    = 0x22
 WRITE_RAM                                   = 0x24
+WRITE_RED_RAM                               = 0x26
 WRITE_VCOM_REGISTER                         = 0x2C
 WRITE_LUT_REGISTER                          = 0x32
 SET_DUMMY_LINE_PERIOD                       = 0x3A
@@ -67,9 +68,8 @@ class EPD:
         self.busy_pin = None
         self.lut = self.lut_full_update
         self.buffer = bytearray(self.fb_bytes)
-        self.framebuf = adafruit_framebuf.FrameBuffer(self.buffer, self.width, self.height)
+        self.framebuf = adafruit_framebuf.FrameBuffer(self.buffer, self.width, self.height, buf_format=adafruit_framebuf.MHMSB)
 
-    # TODO convert to raw bytes literals to save space / mem / import time
     lut_full_update = bytes((
         0x0,0x40,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,
         0x80,0x80,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,
@@ -243,17 +243,13 @@ class EPD:
 
     def display_frame_buf(self, frame_buffer, fast_ghosting=False):
         assert len(frame_buffer) == self.fb_bytes
-        for _ in range(2):
-            self._set_memory_area(0, 0, self.width-1, self.height-1)
-            for j in range(0, self.height):
-                # Some displays only accept one row of data per WRITE_RAM.
-                self._set_memory_pointer(0, j)
-                offset = j * self.width // 8
-                self._send_command(WRITE_RAM)
-                self._send_data(frame_buffer[offset:offset + (self.width//8) + 1])
-            self.display_frame()
-            if fast_ghosting:
-                break
+        self._send_command(WRITE_RAM)
+        for i in range(0, self.height * int(self.width/8)):
+            self._send_data(frame_buffer[i])
+        self._send_command(WRITE_RED_RAM)
+        for i in range(0, self.height * int(self.width/8)):
+            self._send_data(frame_buffer[i])
+        self.display_frame()
 
     def display_bitmap(self, bitmap, fast_ghosting=False):
         """Render a MonoBitmap onto the display.
