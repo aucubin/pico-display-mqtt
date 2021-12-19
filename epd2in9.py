@@ -69,6 +69,7 @@ class EPD:
         self.lut = self.lut_full_update
         self.buffer = bytearray(self.fb_bytes)
         self.framebuf = adafruit_framebuf.FrameBuffer(self.buffer, self.width, self.height, buf_format=adafruit_framebuf.MHMSB)
+        self.framebuf.rotation = 1
 
     lut_full_update = bytes((
         0x0,0x40,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,
