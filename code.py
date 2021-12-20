@@ -81,6 +81,7 @@ def set_display():
     epd.framebuf.text(mqtt_values[tvoc_const], 160, 70, True, size = 3)
     epd.framebuf.text(eco2_const, 10, 100, True, size = 3)
     epd.framebuf.text(mqtt_values[eco2_const], 160, 100, True, size = 3)
+    epd.invert_framebuffer()
     epd.display_frame_buf(epd.buffer)
 
 spi = busio.SPI(esp32_sck, esp32_mosi, esp32_miso)
@@ -100,6 +101,10 @@ try:
     from secrets import secrets
 except ImportError:
     print("secrets not found. Please add them to secrets.py")
+
+print("Clear display...")
+epd.clear_frame_memory()
+epd.display_frame()
 
 while True:
     if esp.status == adafruit_esp32spi.WL_IDLE_STATUS:
@@ -129,10 +134,6 @@ while True:
 
     print("Start connecting to MQTT broker...")
     mqtt_client.connect()
-    
-    print("Clear display...")
-    epd.clear_frame_memory()
-    epd.display_frame()
 
     print("Start MQTT loop...")
     last_display_set = time.time()

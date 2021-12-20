@@ -232,6 +232,10 @@ class EPD:
         for i, _ in enumerate(self.buffer):
             self.buffer[i] = 0
 
+    def invert_framebuffer(self):
+        for i, _ in enumerate(self.buffer):
+            self.buffer[i] ^= 0xFF
+
 ##
  #  @brief: update the display
  #          there are 2 memory areas embedded in the e-paper display
