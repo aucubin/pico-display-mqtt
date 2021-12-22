@@ -76,12 +76,12 @@ def calc_time():
     min = now.tm_min
     hourStr = ""
     if hour < 10:
-        hourStr = "0"+hour
+        hourStr = "0"+str(hour)
     else:
         hourStr = str(hour)
     minStr = ""
     if min < 10:
-        minStr = "0"+min
+        minStr = "0"+str(min)
     else:
         minStr = str(min) 
     return "{}:{}".format(hourStr,minStr)
