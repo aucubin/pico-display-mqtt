@@ -118,7 +118,7 @@ ntp = NTP(esp)
 def check_and_reconnect_ntp():
     while not ntp.valid_time:
         print("Setting time")
-        ntp.set_time()
+        ntp.set_time(3600)
 
 try:
     from secrets import secrets
