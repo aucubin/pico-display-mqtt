@@ -38,10 +38,10 @@ eco2_const = "eco2"
 
 # MQTT Values Dict
 mqtt_values = {
-    temp_const: -1,
-    humidity_const: -1,
-    tvoc_const: -1,
-    eco2_const: -1
+    temp_const: -1.0,
+    humidity_const: -1.0,
+    tvoc_const: -1.0,
+    eco2_const: -1.0
 }
 
 # Last display set
@@ -62,25 +62,42 @@ def message(client, topic, message):
     data = "{0} - {1}".format(topic, message)
     print("New Message from MQTT: {0}".format(data))
     if topic == temp_feed:
-        mqtt_values[temp_const] = message
+        mqtt_values[temp_const] = round(float(message),1)
     elif topic == humidity_feed:
-        mqtt_values[humidity_const] = message
+        mqtt_values[humidity_const] = round(float(message),1)
     elif topic == tvoc_feed:
-        mqtt_values[tvoc_const] = message
+        mqtt_values[tvoc_const] = float(message)
     elif topic == eco2_feed:
-        mqtt_values[eco2_const] = message
-    
+        mqtt_values[eco2_const] = float(message)
+
+def calc_time():
+    now = time.localtime()
+    hour = now.tm_hour
+    min = now.tm_min
+    hourStr = ""
+    if hour < 10:
+        hourStr = "0"+hour
+    else:
+        hourStr = str(hour)
+    minStr = ""
+    if min < 10:
+        minStr = "0"+min
+    else:
+        minStr = str(min) 
+    return "{}:{}".format(hourStr,minStr)
+
 def set_display():
     print("Updating display")
     epd.clear_framebuffer()
-    epd.framebuf.text(temp_const, 10, 10, True, size = 3)
-    epd.framebuf.text(mqtt_values[temp_const], 160, 10, True, size = 3)
-    epd.framebuf.text(humidity_const, 10, 40, True, size = 3)
-    epd.framebuf.text(mqtt_values[humidity_const], 160, 40, True, size = 3)
-    epd.framebuf.text(tvoc_const, 10, 70, True, size = 3)
-    epd.framebuf.text(mqtt_values[tvoc_const], 160, 70, True, size = 3)
-    epd.framebuf.text(eco2_const, 10, 100, True, size = 3)
-    epd.framebuf.text(mqtt_values[eco2_const], 160, 100, True, size = 3)
+    temp_val = str(mqtt_values[temp_const]) + "C"
+    epd.framebuf.text(temp_val, 10, 10, True, size = 3)
+    humidity_val = str(mqtt_values[humidity_const]) + "%H"
+    epd.framebuf.text(humidity_val, 160, 10, True, size = 3)
+    epd.framebuf.text(tvoc_const, 10, 40, True, size = 3)
+    epd.framebuf.text(str(int(mqtt_values[tvoc_const])), 160, 40, True, size = 3)
+    epd.framebuf.text(eco2_const, 10, 70, True, size = 3)
+    epd.framebuf.text(str(int(mqtt_values[eco2_const])), 160, 70, True, size = 3)
+    epd.framebuf.text(calc_time(), 85, 100, True, size = 3)
     epd.invert_framebuffer()
     epd.display_frame_buf(epd.buffer)
 
@@ -105,7 +122,8 @@ except ImportError:
 print("Clear display...")
 epd.clear_frame_memory()
 epd.display_frame()
-
+print("Write to display")
+set_display()
 while True:
     if esp.status == adafruit_esp32spi.WL_IDLE_STATUS:
         print("ESP32 found and in idle mode")
