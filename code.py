@@ -114,6 +114,12 @@ def check_and_reconnect_wifi():
             print("could not connect to AP, retrying: ", e)
             continue
 
+ntp = NTP(esp)
+def check_and_reconnect_ntp():
+    while not ntp.valid_time:
+        print("Setting time")
+        ntp.set_time()
+
 try:
     from secrets import secrets
 except ImportError:
@@ -132,10 +138,7 @@ while True:
 
     print("Connecting to AP...")
     check_and_reconnect_wifi()
-
-    print("Setting time")
-    ntp = NTP(esp)
-    ntp.set_time()
+    check_and_reconnect_ntp()
 
     MQTT.set_socket(socket, esp)
 
@@ -163,6 +166,7 @@ while True:
                 last_display_set = time.time()
                 set_display()
                 check_and_reconnect_wifi()
+                check_and_reconnect_ntp()
         except Exception:
             killed = True
             continue
