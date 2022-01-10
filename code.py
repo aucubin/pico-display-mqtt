@@ -117,6 +117,7 @@ def check_and_reconnect_wifi():
 ntp = NTP(esp)
 def check_and_reconnect_ntp():
     while not ntp.valid_time:
+        time.sleep(1)
         print("Setting time")
         ntp.set_time(3600)
 
