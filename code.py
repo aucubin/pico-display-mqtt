@@ -45,7 +45,9 @@ mqtt_values = {
 }
 
 # Last display set
-display_set_interval = 30
+display_set_interval = 600
+display_set_with_data = False
+first_data_set_interval = 10
 
 # MQTT Callback functions
 def connected(client, userdata, flags, rc):
@@ -93,11 +95,11 @@ def set_display():
     epd.framebuf.text(temp_val, 10, 10, True, size = 3)
     humidity_val = str(mqtt_values[humidity_const]) + "%H"
     epd.framebuf.text(humidity_val, 160, 10, True, size = 3)
-    epd.framebuf.text(tvoc_const, 10, 40, True, size = 3)
-    epd.framebuf.text(str(int(mqtt_values[tvoc_const])), 160, 40, True, size = 3)
-    epd.framebuf.text(eco2_const, 10, 70, True, size = 3)
-    epd.framebuf.text(str(int(mqtt_values[eco2_const])), 160, 70, True, size = 3)
-    epd.framebuf.text(calc_time(), 85, 100, True, size = 3)
+    epd.framebuf.text(tvoc_const, 10, 50, True, size = 3)
+    epd.framebuf.text(str(int(mqtt_values[tvoc_const])), 160, 50, True, size = 3)
+    epd.framebuf.text(eco2_const, 10, 90, True, size = 3)
+    epd.framebuf.text(str(int(mqtt_values[eco2_const])), 160, 90, True, size = 3)
+    #epd.framebuf.text(calc_time(), 85, 100, True, size = 3)
     epd.invert_framebuffer()
     epd.display_frame_buf(epd.buffer)
 
@@ -119,7 +121,7 @@ def check_and_reconnect_ntp():
     while not ntp.valid_time:
         time.sleep(1)
         print("Setting time")
-        ntp.set_time(3600)
+        ntp.set_time(7200)
 
 try:
     from secrets import secrets
@@ -159,10 +161,15 @@ while True:
 
     print("Start MQTT loop...")
     last_display_set = time.time()
+    last_first_display_set = time.time()
     killed = False
     while not killed:
         try:
             mqtt_client.loop()
+            if (time.time() - last_first_display_set) > first_data_set_interval and not display_set_with_data:
+                last_first_display_set = time.time()
+                display_set_with_data = True
+                set_display()
             if (time.time() - last_display_set) > display_set_interval:
                 last_display_set = time.time()
                 set_display()
