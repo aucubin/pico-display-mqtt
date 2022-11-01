@@ -20,12 +20,6 @@ esp32_sck = board.GP18
 esp32_mosi = board.GP19
 esp32_miso = board.GP4
 
-# MQTT Topics
-temp_feed = "weather/aucubin/temp"
-humidity_feed = "weather/aucubin/humidity"
-tvoc_feed = "weather/aucubin/tvoc"
-eco2_feed = "weather/aucubin/eco2"
-
 # Display
 epd = epd2in9.EPD()
 epd.init()
@@ -50,44 +44,51 @@ display_set_with_data = False
 first_data_set_interval = 10
 
 # MQTT Callback functions
+
+
 def connected(client, userdata, flags, rc):
     print("Connected to MQTT Broker. Subscribing to topics.")
-    client.subscribe(temp_feed)
-    client.subscribe(humidity_feed)
-    client.subscribe(tvoc_feed)
-    client.subscribe(eco2_feed)
-    
+    client.subscribe(secrets["temp_feed"])
+    client.subscribe(secrets["humidity_feed"])
+    client.subscribe(secrets["tvoc_feed"])
+    client.subscribe(secrets["eco2_feed"])
+
+
 def disconnected(client, userdata, rc):
     print("Disconnected from MQTT Broker.")
-    
+
+
 def message(client, topic, message):
     data = "{0} - {1}".format(topic, message)
     print("New Message from MQTT: {0}".format(data))
-    if topic == temp_feed:
-        mqtt_values[temp_const] = round(float(message),1)
-    elif topic == humidity_feed:
-        mqtt_values[humidity_const] = round(float(message),1)
-    elif topic == tvoc_feed:
+    if topic == secrets["temp_feed"]:
+        mqtt_values[temp_const] = round(float(message), 1)
+    elif topic == secrets["humidity_feed"]:
+        mqtt_values[humidity_const] = round(float(message), 1)
+    elif topic == secrets["tvoc_feed"]:
         mqtt_values[tvoc_const] = float(message)
-    elif topic == eco2_feed:
+    elif topic == secrets["eco2_feed"]:
         mqtt_values[eco2_const] = float(message)
-    
+
+
 def set_display():
     print("Updating display")
     epd.clear_framebuffer()
     temp_val = str(mqtt_values[temp_const]) + "C"
-    epd.framebuf.text(temp_val, 10, 10, True, size = 3)
+    epd.framebuf.text(temp_val, 10, 10, True, size=3)
     humidity_val = str(mqtt_values[humidity_const]) + "%H"
-    epd.framebuf.text(humidity_val, 160, 10, True, size = 3)
-    epd.framebuf.text(tvoc_const, 10, 50, True, size = 3)
-    epd.framebuf.text(str(int(mqtt_values[tvoc_const])), 160, 50, True, size = 3)
-    epd.framebuf.text(eco2_const, 10, 90, True, size = 3)
-    epd.framebuf.text(str(int(mqtt_values[eco2_const])), 160, 90, True, size = 3)
+    epd.framebuf.text(humidity_val, 160, 10, True, size=3)
+    epd.framebuf.text(tvoc_const, 10, 50, True, size=3)
+    epd.framebuf.text(str(int(mqtt_values[tvoc_const])), 160, 50, True, size=3)
+    epd.framebuf.text(eco2_const, 10, 90, True, size=3)
+    epd.framebuf.text(str(int(mqtt_values[eco2_const])), 160, 90, True, size=3)
     epd.invert_framebuffer()
     epd.display_frame_buf(epd.buffer)
 
+
 spi = busio.SPI(esp32_sck, esp32_mosi, esp32_miso)
 esp = adafruit_esp32spi.ESP_SPIcontrol(spi, esp32_cs, esp32_ready, esp32_reset)
+
 
 def check_and_reconnect_wifi():
     while not esp.is_connected:
@@ -99,12 +100,16 @@ def check_and_reconnect_wifi():
             print("could not connect to AP, retrying: ", e)
             continue
 
+
 ntp = NTP(esp)
+
+
 def check_and_reconnect_ntp():
     while not ntp.valid_time:
         time.sleep(1)
         print("Setting time")
         ntp.set_time(7200)
+
 
 try:
     from secrets import secrets
@@ -133,7 +138,7 @@ while True:
         port=secrets["mqtt_port"],
         username=secrets["mqtt_username"],
         password=secrets["mqtt_password"]
-        )
+    )
 
     mqtt_client.on_connect = connected
     mqtt_client.on_disconnect = disconnected
@@ -163,5 +168,5 @@ while True:
         except Exception:
             killed = True
             continue
-        
+
         time.sleep(1)
