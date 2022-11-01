@@ -1,7 +1,6 @@
 import board
 import busio
 import time
-import TM1637
 from digitalio import DigitalInOut
 
 from adafruit_esp32spi import adafruit_esp32spi
@@ -20,8 +19,6 @@ esp32_reset = DigitalInOut(board.GP21)
 esp32_sck = board.GP18
 esp32_mosi = board.GP19
 esp32_miso = board.GP4
-tm1637_clk = board.GP0
-tm1637_dio = board.GP1
 
 # MQTT Topics
 temp_feed = "weather/aucubin/temp"
@@ -32,10 +29,6 @@ eco2_feed = "weather/aucubin/eco2"
 # Display
 epd = epd2in9.EPD()
 epd.init()
-
-# 4-Digit Display
-tm1637 = TM1637.TM1637(tm1637_clk, tm1637_dio)
-tm1637.numbers(88,88)
 
 # Value Consts
 temp_const = "temp"
@@ -55,7 +48,6 @@ mqtt_values = {
 display_set_interval = 600
 display_set_with_data = False
 first_data_set_interval = 10
-digit_display_set_interval = 5
 
 # MQTT Callback functions
 def connected(client, userdata, flags, rc):
@@ -80,13 +72,6 @@ def message(client, topic, message):
     elif topic == eco2_feed:
         mqtt_values[eco2_const] = float(message)
     
-def set_digit_display():
-    print("Update digit display")
-    now = time.localtime()
-    hour = now.tm_hour
-    minutes = now.tm_min
-    tm1637.numbers(hour, minutes)
-
 def set_display():
     print("Updating display")
     epd.clear_framebuffer()
@@ -175,9 +160,6 @@ while True:
                 set_display()
                 check_and_reconnect_wifi()
                 check_and_reconnect_ntp()
-            if (current_time - last_digit_display_set) > digit_display_set_interval:
-                last_digit_display_set = current_time
-                set_digit_display()
         except Exception:
             killed = True
             continue
